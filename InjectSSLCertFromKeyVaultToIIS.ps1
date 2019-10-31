@@ -22,5 +22,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-New-WebBinding -Name "ProdWebApp" -Protocol https -Port 443
-Get-ChildItem cert:\localmachine\MyCertificateStore | New-Item -Path IIS:\SslBindings\!443
+$cert = "A48145441F23CF6E1826E0F8D9D5DE93C1F732F1"
+$guid = [guid]::NewGuid().ToString("B")
+netsh http add sslcert hostnameport="localhost:443" certhash=$cert certstorename=MyCertificateStore appid="$guid"
+netsh http add sslcert hostnameport="localhost:444" certhash=$cert certstorename=MyCertificateStore appid="$guid"
+netsh http add sslcert hostnameport="localhost:1001" certhash=$cert certstorename=MyCertificateStore appid="$guid"
+netsh http add sslcert hostnameport="localhost:1002" certhash=$cert certstorename=MyCertificateStore appid="$guid"
+netsh http add sslcert hostnameport="localhost:1003" certhash=$cert certstorename=MyCertificateStore appid="$guid"
+netsh http add sslcert hostnameport="localhost:1004" certhash=$cert certstorename=MyCertificateStore appid="$guid"
+
