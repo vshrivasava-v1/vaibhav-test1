@@ -1,0 +1,174 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualMachineScaleSets_AdminScaleSet_name": {
+            "defaultValue": "AdminScaleSet",
+            "type": "String"
+        },
+        "images_VMApp_Secondary_image_20191011165516_externalid": {
+            "defaultValue": "/subscriptions/5aa0d9e9-93fa-47b3-84b7-c89085d2da5a/resourceGroups/ResourceGroupAdmin/providers/Microsoft.Compute/images/VMApp-Secondary-image-20191011165516",
+            "type": "String"
+        },
+        "virtualNetworks_ApplicationGateway_Vnet_externalid": {
+            "defaultValue": "/subscriptions/5aa0d9e9-93fa-47b3-84b7-c89085d2da5a/resourceGroups/ResourceGroupAdmin/providers/Microsoft.Network/virtualNetworks/ApplicationGateway-Vnet",
+            "type": "String"
+        },
+        "applicationGateways_AdminApplicationGateway_externalid": {
+            "defaultValue": "/subscriptions/5aa0d9e9-93fa-47b3-84b7-c89085d2da5a/resourceGroups/ResourceGroupAdmin/providers/Microsoft.Network/applicationGateways/AdminApplicationGateway",
+            "type": "String"
+        },
+		"keyVaultResourceGroup" :{
+			"defaultValue": "ResourceGroupAdmin",
+            "type": "String"
+		},
+		"dnabKeyVaultName" :{
+			"defaultValue": "DNABKeyVault",
+            "type": "String"
+		},
+		 "VMSSUpdateTagVersion": {
+			  "type": "string",
+			  "defaultValue": "3.0",
+			  "metadata": {
+				"description": "This value must be changed from a previous deployment to ensure the extension will run"
+			  }
+		},
+		"scriptFileName": {
+			  "type": "string",
+			  "defaultValue": "InjectSSLCertFromKeyVaultToIIS.ps1"		 
+		},
+		"secretUrl" :{
+			"defaultValue": "https://dnabkeyvault.vault.azure.net/secrets/DNABWildcard-pfx/4363c706932e4913ad4cecde901d041e",
+            "type": "String"
+		},
+		"certificateStoreName" :{
+			"defaultValue": "MyCertificateStore",
+            "type": "String"
+		},
+		"certificateDomain": {
+		  "type": "string",
+		  "defaultValue": "dnabehavior.com"
+		}
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "apiVersion": "2019-03-01",
+            "name": "[parameters('virtualMachineScaleSets_AdminScaleSet_name')]",
+            "location": "westus2",
+            "sku": {
+                "name": "Standard_DS1_v2",
+                "tier": "Standard",
+                "capacity": 2
+            },
+            "properties": {
+                "singlePlacementGroup": true,
+                "upgradePolicy": {
+                    "mode": "Manual"
+                },
+                "virtualMachineProfile": {
+                    "osProfile": {
+                        "computerNamePrefix": "adminscal",
+                        "adminUsername": "dnab-adminuser",
+						"adminPassword": "Delaplex#123",
+                        "windowsConfiguration": {
+                            "provisionVMAgent": true,
+                            "enableAutomaticUpdates": true
+                        },
+                        "secrets": [
+							  {
+								"sourceVault": {
+								  "id": "[resourceId(parameters('keyVaultResourceGroup'), 'Microsoft.KeyVault/vaults', parameters('dnabKeyVaultName'))]"
+								},
+								"vaultCertificates": [
+								  {
+									"certificateUrl": "[parameters('secretUrl')]",
+									"certificateStore": "[parameters('certificateStoreName')]"
+								  }
+								]
+							  }
+						]
+                    },
+                    "storageProfile": {
+                        "osDisk": {
+                            "createOption": "FromImage",
+                            "caching": "ReadWrite",
+                            "managedDisk": {
+                                "storageAccountType": "Standard_LRS"
+                            },
+                            "diskSizeGB": 127
+                        },
+                        "imageReference": {
+                            "id": "[parameters('images_VMApp_Secondary_image_20191011165516_externalid')]"
+                        }
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "[concat(parameters('virtualMachineScaleSets_AdminScaleSet_name'), 'Nic')]",
+                                "properties": {
+                                    "primary": true,
+                                    "enableAcceleratedNetworking": false,
+                                    "dnsSettings": {
+                                        "dnsServers": []
+                                    },
+                                    "enableIPForwarding": false,
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "[concat(parameters('virtualMachineScaleSets_AdminScaleSet_name'), 'IpConfig')]",
+                                            "properties": {
+                                                "publicIPAddressConfiguration": {
+                                                    "name": "pub1",
+                                                    "properties": {
+                                                        "idleTimeoutInMinutes": 15,
+                                                        "ipTags": []
+                                                    }
+                                                },
+                                                "subnet": {
+                                                    "id": "[concat(parameters('virtualNetworks_ApplicationGateway_Vnet_externalid'), '/subnets/ApplicationGateway-subnet')]"
+                                                },
+                                                "privateIPAddressVersion": "IPv4",
+                                                "applicationGatewayBackendAddressPools": [
+                                                    {
+                                                        "id": "[concat(parameters('applicationGateways_AdminApplicationGateway_externalid'), concat('/backendAddressPools/AdminApplicationGateway', parameters('virtualMachineScaleSets_AdminScaleSet_name')))]"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },					
+					"extensionProfile": {
+						"extensions": [
+						  {
+							"name": "IIS",
+							"properties": {
+							  "publisher": "Microsoft.Compute",
+							  "type": "CustomScriptExtension",
+							  "typeHandlerVersion": "1.9",
+							  "autoUpgradeMinorVersion": true,
+							  "forceUpdateTag": "4.0",
+							  "settings": {
+								"fileUris": [
+								  "https://raw.githubusercontent.com/vshrivasava-v1/vaibhav-test1/master/InjectSSLCertFromKeyVaultToIIS.ps1"
+								]
+							  },
+							  "protectedSettings": {
+								"commandToExecute": "powershell -ExecutionPolicy Unrestricted -File InjectSSLCertFromKeyVaultToIIS.ps1"
+							  }
+							}
+						  }
+						]
+					  },					
+                    "priority": "Regular"
+                },
+                "overprovision": true,
+                "doNotRunExtensionsOnOverprovisionedVMs": false,
+                "platformFaultDomainCount": 1
+            }
+        }
+    ]
+}

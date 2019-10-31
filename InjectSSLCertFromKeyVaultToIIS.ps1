@@ -21,13 +21,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+$SSLthumbprint = (Get-ChildItem -path 'Cert:\LocalMachine\MyCertificateStore\').Thumbprint
 
-$cert = "A48145441F23CF6E1826E0F8D9D5DE93C1F732F1"
 $guid = [guid]::NewGuid().ToString("B")
-netsh http add sslcert hostnameport="localhost:443" certhash=$cert certstorename=MyCertificateStore appid="$guid"
-netsh http add sslcert hostnameport="localhost:444" certhash=$cert certstorename=MyCertificateStore appid="$guid"
-netsh http add sslcert hostnameport="localhost:1001" certhash=$cert certstorename=MyCertificateStore appid="$guid"
-netsh http add sslcert hostnameport="localhost:1002" certhash=$cert certstorename=MyCertificateStore appid="$guid"
-netsh http add sslcert hostnameport="localhost:1003" certhash=$cert certstorename=MyCertificateStore appid="$guid"
-netsh http add sslcert hostnameport="localhost:1004" certhash=$cert certstorename=MyCertificateStore appid="$guid"
+netsh http add sslcert hostnameport="localhost:443" certhash=$SSLthumbprint certstorename=MyCertificateStore appid="$guid"
+netsh http add sslcert hostnameport="localhost:444" certhash=$SSLthumbprint certstorename=MyCertificateStore appid="$guid"
+netsh http add sslcert hostnameport="localhost:1001" certhash=$SSLthumbprint certstorename=MyCertificateStore appid="$guid"
+netsh http add sslcert hostnameport="localhost:1002" certhash=$SSLthumbprint certstorename=MyCertificateStore appid="$guid"
+netsh http add sslcert hostnameport="localhost:1003" certhash=$SSLthumbprint certstorename=MyCertificateStore appid="$guid"
+netsh http add sslcert hostnameport="localhost:1004" certhash=$SSLthumbprint certstorename=MyCertificateStore appid="$guid"
 
