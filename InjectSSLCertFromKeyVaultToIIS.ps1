@@ -24,13 +24,3 @@
 
 New-WebBinding -Name "ProdWebApp" -Protocol https -Port 443
 Get-ChildItem cert:\localmachine\MyCertificateStore | New-Item -Path IIS:\SslBindings\!443
-New-WebBinding -Name "ProdWebAPI" -Protocol https -Port 444
-Get-ChildItem cert:\localmachine\MyCertificateStore | New-Item -Path IIS:\SslBindings\!444
-New-WebBinding -Name "MirrorWebApp" -Protocol https -Port 1001
-Get-ChildItem cert:\localmachine\MyCertificateStore | New-Item -Path IIS:\SslBindings\!1001
-New-WebBinding -Name "MirrorWebAPI" -Protocol https -Port 1002
-Get-ChildItem cert:\localmachine\MyCertificateStore | New-Item -Path IIS:\SslBindings\!1002
-New-WebBinding -Name "SandboxWebApp" -Protocol https -Port 1003
-Get-ChildItem cert:\localmachine\MyCertificateStore | New-Item -Path IIS:\SslBindings\!1003
-New-WebBinding -Name "SandboxWebAPI" -Protocol https -Port 1004
-Get-ChildItem cert:\localmachine\MyCertificateStore | New-Item -Path IIS:\SslBindings\!1004
